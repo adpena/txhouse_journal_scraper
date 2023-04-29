@@ -13,6 +13,7 @@
         function process_voting_data(raw_data) {
             let [position, names_str] = raw_data.split("—");
             position = position.replace(/\s+$/, '');
+            names_str = names_str.replace(/\n/g, ' ');
             const names = names_str.split(";");
             const processed_data = [];
             for (let i = 0; i < names.length; i++) {
