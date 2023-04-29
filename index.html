@@ -12,10 +12,11 @@
     <script>
         function process_voting_data(raw_data) {
             const [position, names_str] = raw_data.split(" — ");
-            const names = names_str.split("; ");
+            const names = names_str.split(";");
             const processed_data = [];
             for (let i = 0; i < names.length; i++) {
                 let name = names[i];
+                name = name.replace(/^\s+/, '');
                 if (i === names.length - 1) {
                     // Remove trailing period from the last name
                     name = name.replace(/\.$/, '');
