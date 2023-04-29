@@ -11,7 +11,8 @@
     </style>
     <script>
         function process_voting_data(raw_data) {
-            const [position, names_str] = raw_data.split(" — ");
+            let [position, names_str] = raw_data.split("—");
+            position = position.replace(/\s+$/, '');
             const names = names_str.split(";");
             const processed_data = [];
             for (let i = 0; i < names.length; i++) {
