@@ -10,28 +10,41 @@
         }
     </style>
     <script>
-        function process_voting_data(raw_data) {
+        // Add your republicans and democrats lists here
+        const democrats = ['Allen', 'Anchía', 'Bernal', 'Bhojani', 'Bowers', 'Bryant', 'Bucy', 'Campos', 'Canales', 'Cole', 'Collier', 'Cortez', 'Davis', 'Dutton', 'Flores', 'Gámez', 'Garcia', 'Gervin-Hawkins', 'González,J.', 'González,M.', 'Goodwin', 'Guerra', 'Hernandez', 'Herrero', 'Hinojosa', 'Howard', 'Johnson,A.', 'Johnson,J.D.', 'Johnson,J.E.', 'Jones,J.', 'Jones,V.', 'King,T.', 'Lalani', 'Longoria', 'Lopez,R.', 'Manuel', 'Martinez', 'MartinezFischer', 'Meza', 'Moody', 'Morales,C.', 'Morales,E.', 'MoralesShaw', 'Muñoz', 'NeaveCriado', 'Ordaz', 'Ortega', 'Perez', 'Plesa', 'Ramos', 'Raymond', 'Reynolds', 'Romero', 'Rose', 'Rosenthal', 'Sherman', 'Talarico', 'Thierry', 'Thompson,S.', 'Turner', 'Vo', 'Walle', 'Wu', 'Zwiener']
+        const republicans = ['Allison', 'Anderson', 'Ashby', 'Bailes', 'Bell,C.', 'Bell,K.', 'Bonnen', 'Buckley', 'Bumgarner', 'Burns', 'Burrows', 'Button', 'Cain', 'Capriglione', 'Clardy', 'Cook', 'Craddick', 'Cunningham', 'Darby', 'Dean', 'DeAyala', 'Dorazio', 'Frank', 'Frazier', 'Gates', 'Gerdes', 'Geren', 'Goldman', 'Guillen', 'Harless', 'Harris,C.E.', 'Harris,C.J.', 'Harrison', 'Hayes', 'Hefner', 'Holland', 'Hull', 'Hunter', 'Isaac', 'Jetton', 'Kacal', 'Kitzman', 'Klick', 'Kuempel', 'Lambert', 'Landgraf', 'Leach', 'Leo-Wilson', 'Lopez,J.', 'Lozano', 'Lujan', 'Metcalf', 'Meyer', 'Morrison', 'Murr', 'Noble', 'Oliverson', 'Orr', 'Patterson', 'Paul', 'Price', 'Raney', 'Rogers', 'Schaefer', 'Schatzline', 'Schofield', 'Shaheen', 'Shine', 'Slaton', 'Slawson', 'Smith', 'Smithee', 'Spiller', 'Stucky', 'Swanson', 'Tepper', 'Thimesch', 'Tinderholt', 'Toth', 'Troxclair', 'VanDeaver', 'Vasut', 'Wilson', 'Phelan', 'King,K.', 'Thompson,E.']
+
+        function process_voting_data(raw_data, party_filter) {
             let [position, names_str] = raw_data.split("—");
             position = position.replace(/\s+$/, '');
             names_str = names_str.replace(/\n/g, ' ');
             const names = names_str.split(";");
             const processed_data = [];
             for (let i = 0; i < names.length; i++) {
-                let name = names[i];
-                name = name.replace(/^\s+/, '');
+                let original_name = names[i];
+                original_name = original_name.replace(/^\s+/, '');
+
+                let name = original_name;
+                name = name.replace(/\s+/g, '');
+
                 if (i === names.length - 1) {
                     // Remove trailing period from the last name
+                    original_name = original_name.replace(/\.$/, '');
                     name = name.replace(/\.$/, '');
                 }
-                processed_data.push({"Position": position, "Legislator": name});
+                if (!party_filter || (party_filter === 'democrat' && democrats.includes(name)) || (party_filter === 'republican' && republicans.includes(name))) {
+                    processed_data.push({"Position": position, "Legislator": original_name});
+                }
             }
             return {position, data: processed_data};
         }
 
+
         function download_csv() {
             const raw_data = document.getElementById("raw_data").value;
             const bill_number = document.getElementById("bill_number").value;
-            const {position, data: processed_data} = process_voting_data(raw_data);
+            const party_filter = document.querySelector('input[name="party_filter"]:checked').value;
+            const {position, data: processed_data} = process_voting_data(raw_data, party_filter);
 
             // Generate CSV file
             let csv = "Position,Legislator\n";
@@ -45,7 +58,7 @@
             // Create a link and trigger a download
             const link = document.createElement("a");
             link.href = URL.createObjectURL(csv_blob);
-            const file_name = (bill_number ? bill_number + "_" : "") + position + "_voting_data.csv";
+            const file_name = (bill_number ? bill_number + "_" : "") + (party_filter ? party_filter + "_" : "") + "_" + position + "_voting_data.csv";
             link.download = file_name;
             link.style.display = "none";
             document.body.appendChild(link);
@@ -65,7 +78,23 @@
         <br>
 
         <label for="raw_data">Enter the voting data:</label><br>
-        <textarea id="raw_data" name="raw_data" rows="10" cols="100"></textarea><br>
+        <textarea id="raw_data" name="raw_data" rows="10" cols="100"></textarea>
+
+        <br>
+        <br>
+
+        <label for="party_filter">Party filter:</label><br>
+        <input type="radio" id="no_filter" name="party_filter" value="" checked>
+                <label for="no_filter">No filter</label>
+        <input type="radio" id="democrat" name="party_filter" value="democrat">
+        <label for="democrat">Democrat</label>
+        <input type="radio" id="republican" name="party_filter" value="republican">
+        <label for="republican">Republican</label>
+        <small style="font-style: italic; color: darkred">* Optional field</small>
+
+        <br>
+        <br>
+
         <input type="submit" value="Process and Download">
     </form>
 </body>
